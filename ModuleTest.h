@@ -9,6 +9,16 @@
  *
  */
  
+#ifndef MODULETEST_H_
+#define MODULETEST_H_
+
+#include <stdint.h>
+#include "ButtonLED.h"
+
+/* Test Mode Variables */
+extern uint8_t current_led;    // Current LED color
+extern uint8_t current_test;   // Current test mode (1 for UART, 2 for WTIMER0)
+
 typedef enum{
 	DELAY_TEST,
 	UART_TEST,
@@ -21,3 +31,5 @@ typedef enum{
 } MODULE_TEST_NAME;
  
 void Module_Test(MODULE_TEST_NAME test);
+
+#endif

@@ -25,7 +25,7 @@
 
 /* List of Predefined Macros for individual Peripheral Testing */
 #define DELAY
-//#define UART
+#define UART
 //#define I2C
 //#define TCS34727
 //#define MPU6050

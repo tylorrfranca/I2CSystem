@@ -28,6 +28,10 @@ static char angleBuf[LCD_ROW_SIZE];
 static char colorBuf[LCD_ROW_SIZE];
 static char colorString[6];
 
+/* Test Mode Variables */
+uint8_t current_led = RED;    // Start with red LED
+uint8_t current_test = 1;     // 1 for UART test, 2 for WTIMER0 test
+
 /* RGB Color Struct Instance */
 RGB_COLOR_HANDLE_t RGB_COLOR;
 	
@@ -37,49 +41,61 @@ MPU6050_GYRO_t 	Gyro_Instance;
 MPU6050_ANGLE_t Angle_Instance;
 
 static void Test_Delay(void){
-	/*CODE_FILL*/				//Toggle Red Led
-	/*CODE_FILL*/				//Delay for 0.5s using millisecond delay
+	static uint8_t led_state = 1;  // Track LED state (1 = on, 0 = off)
+	
+	if(led_state){
+		LEDs = current_led;  // Turn on current LED
+	} else {
+		LEDs = DARK;         // Turn off LED
+	}
+	led_state ^= 1;         // Toggle state
+	DELAY_1MS(125);         // 250ms delay for 2Hz frequency
 }
 
 static void Test_UART(void){
-	/*CODE_FILL*/						
-	// 1. Construct a string with letters, decimal numbers and floats using sprintf
-	// 2. Send the string to PC serial terminal for display	
-	// 3. Delay for 1s using ms delay function
+	char testString[100];
+	float test_float = 45.67;
+	static int counter = 0;
+	
+	// Create test string with incrementing counter and float
+	sprintf(testString, "UART Test - Count: %d, Float: %.2f\r\n", counter++, test_float);
+	UART0_OutString(testString);
+	DELAY_1MS(1000);  // Update every 1 second
 }
 
 static void Test_I2C(void){
-	/*CODE_FILL*/						
-	/* Check if RGB Color Sensor has been detected and display the ret value on PC serial terminal. */
 	uint8_t ret = I2C0_Receive(TCS34727_ADDR, TCS34727_CMD|TCS34727_ID_R_ADDR);
+	sprintf(printBuf, "TCS34727 ID: 0x%02X\r\n", ret);
+	UART0_OutString(printBuf);
+	DELAY_1MS(1000);
 }
-
 
 static void Test_MPU6050(void){
 	/* Grab Accelerometer and Gyroscope Raw Data*/
-	/*CODE_FILL*/
+	MPU6050_Get_Accel(&Accel_Instance);
+	MPU6050_Get_Gyro(&Gyro_Instance);
 		
 	/* Process Raw Accelerometer and Gyroscope Data */
-	/*CODE_FILL*/
+	MPU6050_Process_Accel(&Accel_Instance);
+	MPU6050_Process_Gyro(&Gyro_Instance);
 		
 	/* Calculate Tilt Angle */
-	/*CODE_FILL*/
+	MPU6050_Get_Angle(&Accel_Instance, &Gyro_Instance, &Angle_Instance);
 		
 	/* Format buffer to print data and angle */
-	/*CODE_FILL*/
+	sprintf(printBuf, "Accel: X=%.2f Y=%.2f Z=%.2f Angle: %.2f\r\n", 
+		Accel_Instance.Ax, Accel_Instance.Ay, Accel_Instance.Az, Angle_Instance.ArX);
+	UART0_OutString(printBuf);
 	
 	DELAY_1MS(50);
 }
 
 static void Test_TCS34727(void){
-	/* Grab Raw Color Data From Sensor */
-	/*CODE_FILL*/
-		
-	/* Process Raw Color Data to RGB Value */
-	/*CODE_FILL*/
+	/* Grab Raw Color Data From Sensor and Process it */
+	TCS34727_GET_RGB(&RGB_COLOR);
 		
 	/* Change Onboard RGB LED Color to Detected Color */
-	switch(CODE_FILL){
+	switch(Detect_Color(&RGB_COLOR)){
 		case RED_DETECT:
 			LEDs = RED;
 			break;
@@ -92,63 +108,78 @@ static void Test_TCS34727(void){
 		case NOTHING_DETECT:
 			LEDs = DARK;
 			break;
-		}
+	}
 		
 	/* Format String to Print */
-	/*CODE_FILL*/
+	sprintf(printBuf, "R=%.0f G=%.0f B=%.0f\r\n", RGB_COLOR.R, RGB_COLOR.G, RGB_COLOR.B);
 		
 	/* Print String to Terminal through USB */
-	/*CODE_FILL*/
+	UART0_OutString(printBuf);
 		
 	DELAY_1MS(10);
 }
 
 static void Test_Servo(void){
-	/*
-	 * In this test, follow the series of steps below (each step requires a 1s delay after)
-	 * 1. Drive Servo to 0 degree
-	 * 2. Drive Servo to -45 degree
-	 * 3. Drive Servo to 0 degree
-	 * 4. Drive Servo to 45 degree
-	 * 5. Drive Servo to 0 degree
-	 * 6. Drive Servo to -90 degree
-	 * 7. Drive Servo to 0 degree
-	 * 8. Drive Servo to 90 degree
-	 */ 
+	Drive_Servo(0);
+	DELAY_1MS(1000);
 	
-	/*CODE_FILL*/
+	Drive_Servo(-45);
+	DELAY_1MS(1000);
 	
+	Drive_Servo(0);
+	DELAY_1MS(1000);
+	
+	Drive_Servo(45);
+	DELAY_1MS(1000);
+	
+	Drive_Servo(0);
+	DELAY_1MS(1000);
+	
+	Drive_Servo(-90);
+	DELAY_1MS(1000);
+	
+	Drive_Servo(0);
+	DELAY_1MS(1000);
+	
+	Drive_Servo(90);
+	DELAY_1MS(1000);
 }
 
 static void Test_LCD(void){
-	/* Print Name to LCD at Center Location */
-	/*CODE_FILL*/
+	LCD_Clear();
+	DELAY_1MS(2);
+	LCD_Set_Cursor(0, 4);
+	LCD_Print_Str((uint8_t*)"CECS 447");
+	DELAY_1MS(2);
+	LCD_Set_Cursor(1, 4);
+	LCD_Print_Str((uint8_t*)"I2C Project");
 }
 
 static void Test_Full_System(void){
 	/* Grab Accelerometer and Gyroscope Raw Data*/
-	/*CODE_FILL*/
+	MPU6050_Get_Accel(&Accel_Instance);
+	MPU6050_Get_Gyro(&Gyro_Instance);
 		
 	/* Process Raw Accelerometer and Gyroscope Data */
-	/*CODE_FILL*/
+	MPU6050_Process_Accel(&Accel_Instance);
+	MPU6050_Process_Gyro(&Gyro_Instance);
 		
 	/* Calculate Tilt Angle */
-	/*CODE_FILL*/
+	MPU6050_Get_Angle(&Accel_Instance, &Gyro_Instance, &Angle_Instance);
 		
 	/* Drive Servo Accordingly to Tilt Angle on X-Axis*/
-	/*CODE_FILL*/
+	Drive_Servo(Angle_Instance.ArX);
 		
 	/* Format buffer to print MPU6050 data and angle */
-	/*CODE_FILL*/
+	sprintf(printBuf, "Accel: X=%.2f Y=%.2f Z=%.2f Angle: %.2f\r\n", 
+		Accel_Instance.Ax, Accel_Instance.Ay, Accel_Instance.Az, Angle_Instance.ArX);
+	UART0_OutString(printBuf);
 		
-	/* Grab Raw Color Data From Sensor */
-	/*CODE_FILL*/
-		
-	/* Process Raw Color Data to RGB Value */
-	/*CODE_FILL*/
+	/* Grab Raw Color Data From Sensor and Process it */
+	TCS34727_GET_RGB(&RGB_COLOR);
 		
 	/* Change Onboard RGB LED Color to Detected Color */
-	switch(CODE_FILL){
+	switch(Detect_Color(&RGB_COLOR)){
 		case RED_DETECT:
 			LEDs = RED;
 			strcpy(colorString, "RED");
@@ -168,38 +199,63 @@ static void Test_Full_System(void){
 	}
 		
 	/* Format String to Print RGB value*/
-	/*CODE_FILL*/
+	sprintf(printBuf, "R=%.0f G=%.0f B=%.0f Color: %s\r\n", 
+		RGB_COLOR.R, RGB_COLOR.G, RGB_COLOR.B, colorString);
 		
 	/* Print String to Terminal through USB */
-	/*CODE_FILL*/
+	UART0_OutString(printBuf);
 		
 	/* Update LCD With Current Angle and Color Detected */
-//	sprintf(angleBuf, "Angle:%0.2f\0", Angle_Instance.ArX);				//Format String to print angle to 2 Decimal Place
-//	sprintf(colorBuf, "Color:%s\0", colorString);									//Format String to print color detected
-
-	sprintf(angleBuf, "Angle:%0.2f", Angle_Instance.ArX);				//Format String to print angle to 2 Decimal Place
-	sprintf(colorBuf, "Color:%s", colorString);									//Format String to print color detected
+	sprintf(angleBuf, "Angle:%0.2f", Angle_Instance.ArX);
+	sprintf(colorBuf, "Color:%s", colorString);
 	
-	/*CODE_FILL*/						//Clear LCD
-	/*CODE_FILL*/						//Safety Delay of 2ms
-	/*CODE_FILL*/						//Set Cursor to Row 1 Column 0
-	/*CODE_FILL*/						//Print angleBuf String on LCD
-	/*CODE_FILL*/						//Safety Delay of 2ms
-	/*CODE_FILL*/						//Set Cursor to Row 2 Column 1
-	/*CODE_FILL*/						//Print colorBuf String on LCD	
+	LCD_Clear();
+	DELAY_1MS(2);
+	LCD_Set_Cursor(0, 0);
+	LCD_Print_Str((uint8_t*)angleBuf);
+	DELAY_1MS(2);
+	LCD_Set_Cursor(1, 1);
+	LCD_Print_Str((uint8_t*)colorBuf);
 		
 	DELAY_1MS(20);
 }
 
+// SW1 interrupt handler - Toggle between UART and WTIMER0 test
+void GPIOPortF_Handler(void){
+	DELAY_1MS(2);
+	if(SW1_FLAG){  // SW1 was pressed
+		
+		current_test = (current_test == 1) ? 2 : 1;  // Toggle between 1 and 2
+		LEDs = DARK;  // Turn off all LEDs when switching modes
+		PORTF_FLAGS = SW1_PIN;  // Clear SW1 interrupt flag
+	}
+	else if(SW2_FLAG && current_test == 2){  // SW2 was pressed during WTIMER0 test
+		// Simple rotation: RED -> GREEN -> BLUE -> RED
+		if(current_led == RED){          // If RED (0x02)
+			current_led = GREEN;         // Set to GREEN (0x08)
+		}
+		else if(current_led == GREEN){   // If GREEN (0x08)
+			current_led = BLUE;          // Set to BLUE (0x04)
+		}
+		else {                          // If BLUE or any other value
+			current_led = RED;          // Set to RED (0x02)
+		}
+		PORTF_FLAGS = SW2_PIN;  // Clear SW2 interrupt flag
+	}
+}
+
 void Module_Test(MODULE_TEST_NAME test){
-	
 	switch(test){
 		case DELAY_TEST:
-			Test_Delay();
+			if(current_test == 2){  // WTIMER0 test mode
+				Test_Delay();
+			}
 			break;
 		
 		case UART_TEST:
-			Test_UART();
+			if(current_test == 1){  // UART test mode
+				Test_UART();
+			}
 			break;
 		
 		case MPU6050_TEST:
@@ -225,7 +281,6 @@ void Module_Test(MODULE_TEST_NAME test){
 		default:
 			break;
 	}
-	
 }
 
  
