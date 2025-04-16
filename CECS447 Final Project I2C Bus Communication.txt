@@ -1,0 +1,55 @@
+CECS447 Final Project: I2C Bus Communication
+Designed By: Jackie Huynh
+Preparation:
+This academic project requires the following components: a TIVA TM4C Launchpad, a TCS34725 RGB Color Sensor, an MPU6050 6-degree-of-freedom IMU (Inertial Measurement Unit), an angular Servo Motor, and a 16x2 LCD with I2C interface, two 4.7KO resistors, and a serial terminal application of your choice (e.g., Putty, Tera Term, YAT, etc.).
+Starter Project: I2C Starter 
+Project Description:
+In this project, you'll leverage I2C bus communication to configure and retrieve data from three distinct external I2C components: the TCS34725, MPU6050, and 16x2 LCD. You'll have the capability to interact with these three devices via the I2C bus, enabling you to identify colors, manipulate the angle of a servo motor, and display the detected color and angle. The primary objective of this project is to gain a practical understanding of I2C bus communication, a widely used serial communication protocol in various industries, making it a valuable skill to acquire.
+Project Requirement: 
+There will be two parts to this project: the first is to compose and execute separate tests for each hardware component, and the second will be the full system test. The requirements and descriptions for each test and the full system will be described underneath this section. Use the peripheral listed below for this project:
+1. UART0 for microcontroller to PC serial terminal communication.
+2. I2C0 at Standard-Mode speed
+3. Hardware PWM M0PWM0 
+4. WTIMER0 for delay functions
+For this project, there will be macros and conditions that must be filled by you. Look around for any macros called "CONSTANT_FILL" and "CODE_FILL". "CONSTANT_FILL" means you need to find the right constant value. "CODE_FILL" means you need to provide a code implementation. Pay close attention to the comments as they provide information on what you need to do. 
+Part 1: Modules Setup and Testing
+1. Wide timer: a 32-bit wide timer WTIMER0 will be used to generate the 1ms timing needed for the project. Module test requirement: System starts with UART module test mode and no LED on, press sw1 toggle between UART module test and WTIMER0 module test. On WTIMER0 module test mode, the onboard red LED will start blinking at a frequency of 2Hz, press sw2 with move to the next LED in a round robin order of RBG.
+2. UART: UART0 will be used for communication between Launchpad and PC serial terminal for debugging and testing purposes. The required baud rate is 57600. Module test requirement: implement sending strings with decimal numbers and float from MCU to PC serial terminal. Function call to sprintf() is required. Update the serial terminal every 1 second.
+3. I2C Module: I2C0 module will be used at Standard-Mode speed in this project. In this module test, we will take care of I2C0 driver functions: I2C0_Init() and I2C0_Receive().
+4. TCS34725 RGB Color Sensor:
+a. Able to detect the module using the corresponding ID register.
+b. Able to configure the module for specific settings and turn on the module.
+c. Test using onboard LED and UART Terminal.
+5. MPU6050 6-dof IMU
+a. Able to detect the module using the corresponding WHO_AM_I register.
+b. Able to configure the module for specific settings and turn on the module.
+c. Test using Serial Terminal.
+6. 16x2 LCD
+a. Able to print and center aligned full name where first name is on the first row and last name is on the second row. 
+b. Print first name, then wait one second to print last name. Wait another second, clear the screen, and repeat the process. 
+7. Servo
+a. Able to rotate servo to specific angles.
+b. 0 -> -45 -> 0 -> 45 -> 0 -> -90 -> 0 -> 90 -> 0 with a second delay in-between.
+Part 2: Full System
+The full system represents the integration of all modules to build a system capable of identifying the color of the RGB strip connected to the servo motor. The servo motor's position is adjusted based on the tilt angle captured by the MPU6050 along the user's selected axis. Meanwhile, the LCD will provide real-time updates, showing both the color detected by the TCS34725 RGB color sensor and the tilt angle measured by the MPU6050 IMU.
+An RGB three color paper will be attached to the servo motor. A color sensor will be facing the RGB color paper and will be used to detect the color it faces. The servo motor's movement is controlled by the MPU6050 gyroscope. As the gyroscope moves, the servo can move clockwise and counterclockwise making different color facing the color sensor. Once the color sensor detects one of the three colors, it will turn on the same color LED on the launchpad. The LCD is used to display the gyroscope's angle and color detected by the color sensor. A PC serial terminal will also be used to repeatedly display the color and angle information output from the color sensor and the gyroscope. The onboard push buttons will be used in the following way: Press sw1 to start the detection process. Once a color is identified, press sw2 after onboard LED color is updated will cause the display on LCD and PC serial terminal to be updated with the current LED color and gyroscope angle.
+
+
+
+
+Demonstration:
+1. Unit test demonstration: demonstrate the following modules one at a time in the order specified:
+1)  DELAY
+2)  UART
+3)  TCS34727
+4)  MPU6050
+5)  SERVO
+6)  LCD
+2. Full system demonstration.
+Deliverables:
+1. Submit Video Demonstration that records all the required behavior of your embedded system with all individual module testing and full system operation. If it is a video link, please add it to the "Operation" section.
+2. Submit Project Report: follow the project report template for report format. 
+3. Submit all source code in one zip file for the complete system.
+4
+
+
