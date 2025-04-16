@@ -25,8 +25,8 @@
 
 /* List of Predefined Macros for individual Peripheral Testing */
 #define DELAY
-#define UART
-//#define I2C
+//#define UART
+#define I2C
 //#define TCS34727
 //#define MPU6050
 //#define SERVO
@@ -39,7 +39,6 @@ int main(void){
 	UART0_Init();
 	LED_Init();
 	BTN_Init();
-	
 	#if defined(DELAY) || defined(TCS34727) || defined(MPU6050) || defined(LCD) || defined(FULL_SYSTEM)	
 	WTIMER0_Init();
 	#endif

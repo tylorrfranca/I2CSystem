@@ -23,7 +23,7 @@
 #define WTIMER0_TAEN_BIT			(0x01)     // Timer A enable bit
 #define WTIMER0_32_BIT_CFG		(0x04)     // 32-bit configuration
 #define WTIMER0_PERIOD_MODE		(0x02)     // Periodic mode
-#define PRESCALER_VALUE				(40000)    // Prescaler value for 1ms period
+#define PRESCALER_VALUE				(16000)    // Prescaler value for 1ms period
 
 void WTIMER0_Init(void);
 void DELAY_1MS(uint32_t);

@@ -222,9 +222,7 @@ static void Test_Full_System(void){
 
 // SW1 interrupt handler - Toggle between UART and WTIMER0 test
 void GPIOPortF_Handler(void){
-	DELAY_1MS(2);
 	if(SW1_FLAG){  // SW1 was pressed
-		
 		current_test = (current_test == 1) ? 2 : 1;  // Toggle between 1 and 2
 		LEDs = DARK;  // Turn off all LEDs when switching modes
 		PORTF_FLAGS = SW1_PIN;  // Clear SW1 interrupt flag
@@ -256,6 +254,10 @@ void Module_Test(MODULE_TEST_NAME test){
 			if(current_test == 1){  // UART test mode
 				Test_UART();
 			}
+			break;
+		
+		case I2C_TEST:
+			Test_I2C();
 			break;
 		
 		case MPU6050_TEST:

@@ -29,7 +29,7 @@ void WTIMER0_Init(void){
 	
 	/* Prescale down to 1MHz or 1us period */
 	// Frequency = System Clock / Prescaler
-	// Frequency = 40MHz / 40000 = 0.001MHz = 1kHz
+	// Frequency = 16MHz / 40000 = 0.001MHz = 1kHz
 	// Tick Length = Period = 1 / 1kHz = 1ms
 	WTIMER0_TAPR_R = PRESCALER_VALUE;										//Set prescaler to get 1kHz frequency or 1ms period
 }

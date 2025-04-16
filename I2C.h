@@ -18,22 +18,22 @@
 /* List of Fill In Macros */
 
 //Init Function
-#define EN_I2C0_CLOCK			(CONSTANT_FILL)
-#define EN_GPIOB_CLOCK		(CONSTANT_FILL)
-#define I2C0_PINS					(CONSTANT_FILL)
-#define I2C0_ALT_FUNC_MSK	(CONSTANT_FILL)
-#define I2C0_ALT_FUNC_SET	(CONSTANT_FILL)
-#define I2C0_SDA_PIN			(CONSTANT_FILL)
-#define I2C0_SCL_PIN			(CONSTANT_FILL)
-#define EN_I2C0_MASTER		(CONSTANT_FILL)
-#define I2C_MTPR_TPR_VALUE	(CONSTANT_FILL)
-#define I2C_MTPR_STD_SPEED (CONSTANT_FILL)
+#define EN_I2C0_CLOCK			(0x00000001)  // Bit 0 in RCGC1 enables I2C0
+#define EN_GPIOB_CLOCK		(0x00000002)  // Bit 1 in RCGC2 enables GPIOB
+#define I2C0_PINS					(0x0000000C)  // PB2 (SCL) and PB3 (SDA)
+#define I2C0_ALT_FUNC_MSK	(0xFFFF00FF)  // Mask for PCTL bits 8-15
+#define I2C0_ALT_FUNC_SET	(0x00003300)  // Set PCTL bits 8-15 to 3 for I2C
+#define I2C0_SDA_PIN			(0x00000008)  // PB3 (SDA)
+#define I2C0_SCL_PIN			(0x00000004)  // PB2 (SCL)
+#define EN_I2C0_MASTER		(0x00000010)  // Bit 4 in MCR enables master mode
+#define I2C_MTPR_TPR_VALUE	(0x00000007)  // TPR value for 100kHz at 40MHz system clock
+#define I2C_MTPR_STD_SPEED (0x00000000)  // Standard speed mode (100kHz)
 
-//Transmit Function (Most came from above Macros)
-#define I2C0_RW_PIN				(CONSTANT_FILL)
+//Transmit Function
+#define I2C0_RW_PIN				(0x00000001)  // Bit 0 in MSA for read/write control
 
 //Burst Transmit Function
-#define RUN_CMD						(CONSTANT_FILL)
+#define RUN_CMD						(0x00000001)  // Bit 0 in MCS for run command
 
 /*
  *	-------------------I2C0_Init------------------

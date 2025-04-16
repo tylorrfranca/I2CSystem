@@ -20,39 +20,32 @@
 void I2C0_Init(void){
 	
 	/* Enable Required System Clock */
-	SYSCTL_RCGC1_R |= EN_I2C0_CLOCK;							//Enable I2C0 System Clock
-	SYSCTL_RCGC2_R |= EN_GPIOB_CLOCK;							//Enable GPIOB System Clock
+	SYSCTL_RCGC1_R |= SYSCTL_RCGC1_I2C0;    // Enable I2C0 System Clock
+	SYSCTL_RCGC2_R |= SYSCTL_RCGC2_GPIOB;   // Enable GPIOB System Clock
 	
-	//Wait Until GPIOx System Clock is enabled
-	while((SYSCTL_RCGC2_R&EN_GPIOB_CLOCK)!= EN_GPIOB_CLOCK);
+	// Wait Until GPIOB System Clock is enabled
+	while((SYSCTL_RCGC2_R & SYSCTL_RCGC2_GPIOB) != SYSCTL_RCGC2_GPIOB);
 	
-	/* GPIOx I2C Alternate Function Setup	*/
-	GPIO_PORTB_DEN_R	 |= I2C0_PINS;								//Enable Digital I/O
-	GPIO_PORTB_AFSEL_R |= I2C0_PINS;								//Enable Alternate Function Selection
+	/* GPIOB I2C Alternate Function Setup */
+	GPIO_PORTB_AMSEL_R &= ~I2C0_PINS;   // Disable Analog Mode
+	GPIO_PORTB_AFSEL_R |= I2C0_PINS;    // Enable Alternate Function Selection
+	GPIO_PORTB_DEN_R |= I2C0_PINS;      // Enable Digital I/O
 	
-	//Select I2C0 as the alternate function 
-	GPIO_PORTB_PCTL_R  |= (GPIO_PORTB_PCTL_R&I2C0_ALT_FUNC_MSK)+I2C0_ALT_FUNC_SET;
-	GPIO_PORTB_ODR_R	 |= I2C0_SDA_PIN;						  //Enable Open Drain for SDA pin
-	GPIO_PORTB_AMSEL_R &= ~I2C0_PINS;								//Disable Analog Mode
+	// Select I2C0 as the alternate function 
+	GPIO_PORTB_PCTL_R = (GPIO_PORTB_PCTL_R & I2C0_ALT_FUNC_MSK) | I2C0_ALT_FUNC_SET;
 	
-	/*	I2C0 Setup as Master Mode @ 100kBits	*/
-	I2C0_MCR_R |= EN_I2C0_MASTER;									//Configure I2C0 as Master 
+	// Configure pins for I2C
+	GPIO_PORTB_ODR_R |= I2C0_SDA_PIN;   // Enable Open Drain for SDA pin
+	GPIO_PORTB_PUR_R |= I2C0_PINS;      // Enable pull-up resistors
 	
-	/* Configuring I2C Clock Frequency to 100KHz
-		
-		TPR = (System Clock / (2*(SCL_LP + SCL_HP) * SCL_CLK)) - 1
-		SCL_LP and SCL_HP are fixed
-		SCL_LP = 6 & SCL_HP = 4
-		
-		Example if we want to configure I2C speed to 100kHz for 40MHz system clock
-		TPR = (40MHz / ((2*(6+4)) * 100kHz)) - 1 		(Convert Everything to Hz)
-		TPR = 19
-		
-	*/
+	/* I2C0 Setup as Master Mode @ 100kBits */
+	I2C0_MCR_R = EN_I2C0_MASTER;            // Configure I2C0 as Master 
 	
-	// take care of master timer period: standard speed and TPR value	
-	I2C0_MTPR_R = (I2C0_MTPR_R&~(0xFF))|I2C_MTPR_TPR_VALUE|I2C_MTPR_STD_SPEED;
-
+	/* Configuring I2C Clock Frequency to 100KHz */
+	I2C0_MTPR_R = I2C_MTPR_TPR_VALUE;           // TPR = 19 for 100kHz at 40MHz system clock
+	
+	// Enable I2C0
+	I2C0_MCR_R |= EN_I2C0_CLOCK;           // Enable I2C0 master
 }
 
 /*
@@ -62,40 +55,44 @@ void I2C0_Init(void){
  *	Output: Returns 8-bit data that has been received
  */
 uint8_t I2C0_Receive(uint8_t slave_addr, uint8_t slave_reg_addr){
+	char error;
 	
-	char error;																	//Temp Variable to hold errors
-	
-	/* Check if I2C0 is busy: check MCS register Busy bit */
-	while(CODE_FILL);
+	/* Check if I2C0 is busy */
+	while(I2C0_MCS_R & 0x01);
 	
 	/* Configure I2C0 Slave Address and Read Mode */
-	I2C0_MSA_R = CODE_FILL;								// Slave Address is the 7 MSB
-	I2C0_MDR_R = CODE_FILL;								// Set Data Register to slave register address
+	I2C0_MSA_R = (slave_addr << 1);     // Slave Address is the 7 MSB
+	I2C0_MDR_R = slave_reg_addr;        // Set Data Register to slave register address
 	
-	/* Initiate I2C by generating a START & RUN cmd:
-	   Set MCS register START bit to generate and RUN bit to enable I2C Master
-	*/
-	I2C0_MCS_R = CODE_FILL;
+	/* Initiate I2C by generating a START & RUN cmd */
+	I2C0_MCS_R = 0x07;  // START + RUN
 	
-	/* Wait until write is done: check MCS register to see is I2C is still busy */
-	while(CODE_FILL);
+	/* Wait until write is done */
+	while(I2C0_MCS_R & 0x01);
+	
+	/* Check for errors after first transaction */
+	if(I2C0_MCS_R & 0x02) {
+		I2C0_MCS_R = 0x04;  // Generate STOP condition
+		return 0xFF;  // Return error code
+	}
 	
 	/* Set I2C to Receive with Slave Address and change to Read */
-	I2C0_MSA_R = CODE_FILL;
+	I2C0_MSA_R = (slave_addr << 1) | 0x01;  // Set read bit
 	
 	/* Initiate I2C by generating a repeated START, STOP, & RUN cmd */
-	I2C0_MCS_R = CODE_FILL;
+	I2C0_MCS_R = 0x0B;  // START + STOP + RUN
 	
-	/* Wait until I2C bus is not busy: check MCS register for I2C bus busy bit */
-	while(CODE_FILL);
+	/* Wait until I2C bus is not busy */
+	while(I2C0_MCS_R & 0x01);
 	
-	/* Check for any error: read the error flag from MCS register */
-	error = CODE_FILL;
-	if(error != 0)
-		return error;
-  else
-		return (CODE_FILL);  // return I2C data register least significant 8 bits.
-	
+	/* Check for any error */
+	error = I2C0_MCS_R & 0x02;
+	if(error != 0) {
+		I2C0_MCS_R = 0x04;  // Generate STOP condition
+		return 0xFF;  // Return error code
+	}
+	else
+		return I2C0_MDR_R & 0xFF;  // return I2C data register least significant 8 bits.
 }
 
 /*
@@ -105,44 +102,42 @@ uint8_t I2C0_Receive(uint8_t slave_addr, uint8_t slave_reg_addr){
  *	Output: Any Errors if detected, otherwise 0
  */
 uint8_t I2C0_Transmit(uint8_t slave_addr, uint8_t slave_reg_addr, uint8_t data){
+	char error;  // Temp Variable to hold errors
 	
-	char error;																	//Temp Variable to hold errors
-	
-	/* Check if I2C0 is busy: check MCS register Busy bit */
-	while(CODE_FILL);
+	/* Check if I2C0 is busy */
+	while(I2C0_MCS_R & 0x01);
 	
 	/* Configure I2C Slave Address, R/W Mode, and what to transmit */
-	I2C0_MSA_R = CODE_FILL;								//Slave Address is the first 7 MSB
-	I2C0_MSA_R &= ~I2C0_RW_PIN; 						// Clear LSB to write
-	I2C0_MDR_R = CODE_FILL;								//Transmit register addr to interact
+	I2C0_MSA_R = (slave_addr << 1);  // Slave Address is the first 7 MSB
+	I2C0_MSA_R &= ~I2C0_RW_PIN;      // Clear LSB to write
+	I2C0_MDR_R = slave_reg_addr;      // Transmit register addr to interact
 	
 	/* Initiate I2C by generate a START bit and RUN cmd */
-	I2C0_MCS_R = CODE_FILL;
+	I2C0_MCS_R = 0x07;  // START + RUN
 	
 	/* Wait until write has been completed */
-	while(CODE_FILL);
+	while(I2C0_MCS_R & 0x01);
 	
 	/* Update Data Register with data to be transmitted */
-	I2C0_MDR_R = CODE_FILL; 
+	I2C0_MDR_R = data;
 	
 	/* Initiate I2C by generating a STOP & RUN cmd */
-	I2C0_MCS_R = CODE_FILL;
+	I2C0_MCS_R = 0x05;  // STOP + RUN
 	
-	/* Wait until write has been completed: check MCS register Busy bit */
-	while(CODE_FILL);
+	/* Wait until write has been completed */
+	while(I2C0_MCS_R & 0x01);
 	
-	/* Wait until bus isn't busy: check MCS register for I2C bus busy bit */
-	while(CODE_FILL);
+	/* Wait until bus isn't busy */
+	while(I2C0_MCS_R & 0x01);
 	
-	/* Check for any error: read the error flag from MCS register */
-	error = CODE_FILL;
+	/* Check for any error */
+	error = I2C0_MCS_R & 0x02;
 	if(error != 0)
 		return error;
-  else
+	else
 		return 0;
 }
 
-//Has Yet to be Implemented
 /*
  *	----------------I2C0_Burst_Receive-----------------
  *	Polls to receive multiple bytes of data from specified
@@ -151,7 +146,45 @@ uint8_t I2C0_Transmit(uint8_t slave_addr, uint8_t slave_reg_addr, uint8_t data){
  *	Output: None
  */
 void I2C0_Burst_Receive(uint8_t slave_addr, uint8_t slave_reg_addr, uint8_t* data, uint32_t size){
+	char error;
 	
+	/* Check if I2C0 is busy */
+	while(I2C0_MCS_R & 0x01);
+	
+	/* Configure I2C0 Slave Address and Read Mode */
+	I2C0_MSA_R = (slave_addr << 1);  // Slave Address is the 7 MSB
+	I2C0_MDR_R = slave_reg_addr;     // Set Data Register to slave register address
+	
+	/* Initiate I2C by generating a START & RUN cmd */
+	I2C0_MCS_R = 0x07;  // START + RUN
+	
+	/* Wait until write is done */
+	while(I2C0_MCS_R & 0x01);
+	
+	/* Set I2C to Receive with Slave Address and change to Read */
+	I2C0_MSA_R = (slave_addr << 1) | 0x01;  // Set read bit
+	
+	/* Loop to receive multiple bytes */
+	while(size > 1){
+		/* Initiate I2C by generating a RUN cmd */
+		I2C0_MCS_R = 0x01;  // RUN
+		
+		/* Wait until read is done */
+		while(I2C0_MCS_R & 0x01);
+		
+		/* Store received data */
+		*data++ = I2C0_MDR_R & 0xFF;
+		size--;
+	}
+	
+	/* Last byte with STOP condition */
+	I2C0_MCS_R = 0x05;  // STOP + RUN
+	
+	/* Wait until read is done */
+	while(I2C0_MCS_R & 0x01);
+	
+	/* Store last received data */
+	*data = I2C0_MDR_R & 0xFF;
 }
 
 /*
@@ -162,50 +195,48 @@ void I2C0_Burst_Receive(uint8_t slave_addr, uint8_t slave_reg_addr, uint8_t* dat
  *	Output: None
  */
 uint8_t I2C0_Burst_Transmit(uint8_t slave_addr, uint8_t slave_reg_addr, uint8_t* data, uint32_t size){
-	
-	char error;															//Temp Error Variable
+	char error;  // Temp Error Variable
 	
 	/* Asserting Param */
 	if(size <= 0)
 		return 0;
 	
 	/* Check if I2C0 is busy */
-	while(CODE_FILL);
+	while(I2C0_MCS_R & 0x01);
 	
 	/* Configure I2C Slave Address, R/W Mode, and what to transmit */
-	I2C0_MSA_R = CODE_FILL;								//Slave Address is the first 7 MSB
-	I2C0_MSA_R &= CODE_FILL; 							//Clear LSB to write
-	I2C0_MDR_R = CODE_FILL;								//Transmit register addr to interact
+	I2C0_MSA_R = (slave_addr << 1);  // Slave Address is the first 7 MSB
+	I2C0_MSA_R &= ~I2C0_RW_PIN;      // Clear LSB to write
+	I2C0_MDR_R = slave_reg_addr;      // Transmit register addr to interact
 	
 	/* Initiate I2C by generate a START bit and RUN cmd */
-	I2C0_MCS_R = CODE_FILL;
+	I2C0_MCS_R = 0x07;  // START + RUN
 	
 	/* Wait until write has been completed */
-	while(CODE_FILL);
+	while(I2C0_MCS_R & 0x01);
 	
 	/* Loop to Burst Transmit what is stored in data buffer */
 	while(size > 1){
-		
-		I2C0_MDR_R = CONSTANT_FILL;							//Deference Pointer from data array and load into data reg. Post-Increment the pointer after
-		I2C0_MCS_R = RUN_CMD;									//Initiate I2C RUN CMD
-		while(CODE_FILL);							//Wait until transmit is complete
-		size--;																//Reduce size until 1 is left
-		
+		I2C0_MDR_R = *data++;  // Load data and increment pointer
+		I2C0_MCS_R = 0x01;     // RUN
+		while(I2C0_MCS_R & 0x01);  // Wait until transmit is complete
+		size--;
 	}
 	
-	I2C0_MDR_R = CONSTANT_FILL;								//Deference Pointer from data array and load into data reg
-	I2C0_MCS_R = CODE_FILL;							//Initiate I2C STOP condition and RUN CMD
+	/* Last byte with STOP condition */
+	I2C0_MDR_R = *data;  // Load last data byte
+	I2C0_MCS_R = 0x05;   // STOP + RUN
 	
 	/* Wait until write has been completed */
-	while(CODE_FILL);
+	while(I2C0_MCS_R & 0x01);
 	
 	/* Wait until bus isn't busy */
-	while(CODE_FILL);
+	while(I2C0_MCS_R & 0x01);
 	
 	/* Check for any error */
-	error = CODE_FILL;
+	error = I2C0_MCS_R & 0x02;
 	if(error != 0)
 		return error;
-  else
+	else
 		return 0;
 }
