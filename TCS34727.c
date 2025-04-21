@@ -25,6 +25,9 @@ void TCS34727_Init(void){
 	uint8_t ret;																//Temp Variable to hold return values
 	char printBuf[20];													//String buffer to print
 	
+	// Add a small delay after I2C Init and before first communication
+	DELAY_1MS(5); // Delay 5ms
+	
 	/* Check if RGB Color Sensor has been detected */
 	ret = I2C0_Receive(TCS34727_ADDR, TCS34727_CMD|TCS34727_ID_R_ADDR);
 	

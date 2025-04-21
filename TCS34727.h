@@ -30,41 +30,41 @@ Comment Out All Macros that are not used
 */
 
 //Macros of TCS34727 device Address (Based on Datasheet)
-#define TCS34727_ADDR							(CONSTANT_FILL)
+#define TCS34727_ADDR							(0x29)
 
 /*************Command Register*************/
-#define TCS34727_CMD							(CONSTANT_FILL)  // define the bit that indicates a command register
+#define TCS34727_CMD							(0x80)  // define the bit that indicates a command register (Includes Auto Increment Protocol)
 
 /*************Enable Registers*************/
-#define TCS34727_ENABLE_R_ADDR		(CONSTANT_FILL)  // enable register address
-	#define TCS34727_ENABLE_PON			(CONSTANT_FILL)
-	#define TCS34727_ENABLE_AEN			(CONSTANT_FILL)
-	#define TCS34727_ENABLE_WEN			(CONSTANT_FILL)
-	#define TCS34727_ENABLE_AIEN		(CONSTANT_FILL)
+#define TCS34727_ENABLE_R_ADDR		(0x00)  // enable register address
+	#define TCS34727_ENABLE_PON			(0x01)  // Bit 0: Power ON
+	#define TCS34727_ENABLE_AEN			(0x02)  // Bit 1: RGBC ADC Enable
+	#define TCS34727_ENABLE_WEN			(0x08)  // Bit 3: Wait Enable
+	#define TCS34727_ENABLE_AIEN		(0x10)  // Bit 4: RGBC Interrupt Enable
 		
 /**********RGBC Timing Registers***********/
-#define TCS34727_TIMING_R_ADDR				(CONSTANT_FILL)  // Define RGBC timing register address
-	#define TCS34727_ATIME_2_4_MS				(CONSTANT_FILL)  // Set atime to 2.4ms
+#define TCS34727_TIMING_R_ADDR				(0x01)  // Define RGBC timing register address (ATIME)
+	#define TCS34727_ATIME_2_4_MS				(0xFF)  // Set atime to 2.4ms (Integration Time)
 
 /************Control Registers*************/
-#define TCS34727_CTRL_R_ADDR				(CONSTANT_FILL)  // Define control register address
-	#define TCS34727_CTRL_AGAIN_1		(CONSTANT_FILL)
+#define TCS34727_CTRL_R_ADDR				(0x0F)  // Define control register address (GAIN)
+	#define TCS34727_CTRL_AGAIN_1		(0x00)  // Gain = 1x
 	
 /**************ID Registers****************/
-#define TCS34727_ID_R_ADDR			(CONSTANT_FILL)
+#define TCS34727_ID_R_ADDR			(0x12) // Device ID Register Address
 	
 /***********Color Data Register address definitions ***********/
-#define TCS34727_CDATAL_R_ADDR 					(CONSTANT_FILL) 
-#define TCS34727_CDATAH_R_ADDR 					(CONSTANT_FILL) 
-#define TCS34727_RDATAL_R_ADDR 					(CONSTANT_FILL) 
-#define TCS34727_RDATAH_R_ADDR 					(CONSTANT_FILL) 
-#define TCS34727_GDATAL_R_ADDR 					(CONSTANT_FILL) 
-#define TCS34727_GDATAH_R_ADDR 					(CONSTANT_FILL) 
-#define TCS34727_BDATAL_R_ADDR 					(CONSTANT_FILL) 
-#define TCS34727_BDATAH_R_ADDR 					(CONSTANT_FILL) 
+#define TCS34727_CDATAL_R_ADDR 					(0x14) // Clear ADC low byte
+#define TCS34727_CDATAH_R_ADDR 					(0x15) // Clear ADC high byte
+#define TCS34727_RDATAL_R_ADDR 					(0x16) // Red ADC low byte
+#define TCS34727_RDATAH_R_ADDR 					(0x17) // Red ADC high byte
+#define TCS34727_GDATAL_R_ADDR 					(0x18) // Green ADC low byte
+#define TCS34727_GDATAH_R_ADDR 					(0x19) // Green ADC high byte
+#define TCS34727_BDATAL_R_ADDR 					(0x1A) // Blue ADC low byte
+#define TCS34727_BDATAH_R_ADDR 					(0x1B) // Blue ADC high byte
 
 /*************TCS34727 device ID Values**************/
-#define TCS34727_ID			(CONSTANT_FILL)
+#define TCS34727_ID			(0x4D) // Expected ID value for TCS34725 (Previously 0x4D for TCS34727)
 
 /* Custom Return Type */
 typedef enum{
