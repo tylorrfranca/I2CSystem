@@ -14,10 +14,14 @@
 
 #include <stdint.h>
 #include "ButtonLED.h"
+#include "TCS34727.h"
 
 /* Test Mode Variables */
 extern uint8_t current_led;    // Current LED color
 extern uint8_t current_test;   // Current test mode (1 for UART, 2 for WTIMER0)
+
+/* RGB Color Struct Instance */
+extern RGB_COLOR_HANDLE_t RGB_COLOR;
 
 typedef enum{
 	DELAY_TEST,

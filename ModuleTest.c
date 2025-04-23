@@ -91,32 +91,66 @@ static void Test_MPU6050(void){
 }
 
 static void Test_TCS34727(void){
-	/* Grab Raw Color Data From Sensor and Process it */
-	TCS34727_GET_RGB(&RGB_COLOR);
+	/* Main test loop */
+	while(1){
+		/* Get raw color data */
+		RGB_COLOR.C_RAW = TCS34727_GET_RAW_CLEAR();
+		RGB_COLOR.R_RAW = TCS34727_GET_RAW_RED();
+		RGB_COLOR.G_RAW = TCS34727_GET_RAW_GREEN();
+		RGB_COLOR.B_RAW = TCS34727_GET_RAW_BLUE();
 		
-	/* Change Onboard RGB LED Color to Detected Color */
-	switch(Detect_Color(&RGB_COLOR)){
-		case RED_DETECT:
-			LEDs = RED;
-			break;
-		case GREEN_DETECT:
-			LEDs = GREEN;
-			break;
-		case BLUE_DETECT:
-			LEDs = BLUE;
-			break;
-		case NOTHING_DETECT:
-			LEDs = DARK;
-			break;
+		/* Convert raw data to RGB values */
+		TCS34727_GET_RGB(&RGB_COLOR);
+		
+		/* Detect the dominant color */
+		COLOR_DETECTED detectedColor = Detect_Color(&RGB_COLOR);
+		
+		/* Set LED color based on detected color */
+		switch(detectedColor){
+			case RED_DETECT:
+				LEDs = RED;
+				break;
+			case GREEN_DETECT:
+				LEDs = GREEN;
+				break;
+			case BLUE_DETECT:
+				LEDs = BLUE;
+				break;
+			default:
+				LEDs = DARK;  // Turn off LEDs if no color detected
+				break;
+		}
+		
+		/* Print raw values */
+		sprintf(printBuf, "Raw Values - Clear: %d, Red: %d, Green: %d, Blue: %d\r\n",
+				RGB_COLOR.C_RAW, RGB_COLOR.R_RAW, RGB_COLOR.G_RAW, RGB_COLOR.B_RAW);
+		UART0_OutString(printBuf);
+		
+		/* Print RGB values */
+		sprintf(printBuf, "RGB Values - R: %.2f, G: %.2f, B: %.2f\r\n",
+				RGB_COLOR.R, RGB_COLOR.G, RGB_COLOR.B);
+		UART0_OutString(printBuf);
+		
+		/* Print detected color */
+		UART0_OutString("Detected Color: ");
+		switch(detectedColor){
+			case RED_DETECT:
+				UART0_OutString("RED\r\n");
+				break;
+			case GREEN_DETECT:
+				UART0_OutString("GREEN\r\n");
+				break;
+			case BLUE_DETECT:
+				UART0_OutString("BLUE\r\n");
+				break;
+			default:
+				UART0_OutString("NO COLOR DETECTED\r\n");
+				break;
+		}
+		
+		/* Add a delay between readings */
+		DELAY_1MS(1000);
 	}
-		
-	/* Format String to Print */
-	sprintf(printBuf, "R=%.0f G=%.0f B=%.0f\r\n", RGB_COLOR.R, RGB_COLOR.G, RGB_COLOR.B);
-		
-	/* Print String to Terminal through USB */
-	UART0_OutString(printBuf);
-		
-	DELAY_1MS(10);
 }
 
 static void Test_Servo(void){
