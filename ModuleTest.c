@@ -84,10 +84,10 @@ static void Test_MPU6050(void){
 		
 	/* Format buffer to print data and angle */
 	sprintf(printBuf, "Accel: X=%.2f Y=%.2f Z=%.2f Angle: %.2f\r\n", 
-		Accel_Instance.Ax, Accel_Instance.Ay, Accel_Instance.Az, Angle_Instance.ArX);
+		Angle_Instance.ArX, Angle_Instance.ArY, Angle_Instance.ArZ, Angle_Instance.ArY);
 	UART0_OutString(printBuf);
 	
-	DELAY_1MS(50);
+	DELAY_1MS(10);
 }
 
 static void Test_TCS34727(void){

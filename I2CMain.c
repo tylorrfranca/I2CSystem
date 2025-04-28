@@ -27,8 +27,8 @@
 #define DELAY
 //#define UART
 #define I2C
-#define TCS34727
-//#define MPU6050
+//	#define TCS34727
+#define MPU6050
 //#define SERVO
 //#define LCD
 //#define FULL_SYSTEM

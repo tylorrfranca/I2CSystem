@@ -33,14 +33,14 @@ incure any penelties but will be a waste of time)
 
 /**********************************************************/
 #ifndef USE_HIGH
-#define MPU6050_ADDR_AD0_LOW		(CONSTANT_FILL)
+#define MPU6050_ADDR_AD0_LOW		(0x68)
 #else
 //Only use if AD0 is pulled high
-#define MPU6050_ADDR_AD0_HIGH		()
+#define MPU6050_ADDR_AD0_HIGH		(0x69)
 #endif
 
 /*************Sampling Rate Register*************/
-#define SMPLRT_DIV							(CONSTANT_FILL)
+#define SMPLRT_DIV							(0x19)
 //	#define SMPLRT_DIV_1					()
 //	#define SMPLRT_DIV_2					()
 //	#define SMPLRT_DIV_3					()
@@ -48,11 +48,11 @@ incure any penelties but will be a waste of time)
 //	#define SMPLRT_DIV_5					()
 //	#define SMPLRT_DIV_6					()
 //	#define SMPLRT_DIV_7					()
-	#define SMPLRT_DIV_8					(CONSTANT_FILL)
+	#define SMPLRT_DIV_8					(0x07) // Sample Rate = Gyroscope Output Rate / (1 + SMPLRT_DIV) -> 1kHz = 8kHz / (1+7)
 
 /****************Config Register****************/
-#define CONFIG									(CONSTANT_FILL)
-	#define CONFIG_DFPL_0					(CONSTANT_FILL)
+#define CONFIG									(0x1A)
+	#define CONFIG_DFPL_0					(0x00) // DLPF_CFG = 0
 //	#define CONFIG_DFPL_1					()
 //	#define CONFIG_DFPL_2					()
 //	#define CONFIG_DFPL_3					()
@@ -61,15 +61,15 @@ incure any penelties but will be a waste of time)
 //	#define CONFIG_DFPL_6					()
 
 /*************Gyro Config Register*************/
-#define GYRO_CONFIG							(CONSTANT_FILL)
-	#define GYRO_FS_SEL_0					(CONSTANT_FILL)
+#define GYRO_CONFIG							(0x1B)
+	#define GYRO_FS_SEL_0					(0x00) // +/- 250 deg/s
 	#define GYRO_FS_SEL_1					(GYRO_FS_SEL_0 + 0x08)
 	#define GYRO_FS_SEL_2					(GYRO_FS_SEL_0 + 0x10)
 	#define GYRO_FS_SEL_3					(GYRO_FS_SEL_0 + 0x18)
 
 /*************Accel Config Register************/
-#define ACCEL_CONFIG						(CONSTANT_FILL)
-	#define ACCEL_AFS_SEL_0				(CONSTANT_FILL)
+#define ACCEL_CONFIG						(0x1C)
+	#define ACCEL_AFS_SEL_0				(0x00) // +/- 2g
 	#define ACCEL_AFS_SEL_1				(ACCEL_AFS_SEL_0 + 0x08)
 	#define ACCEL_AFS_SEL_2				(ACCEL_AFS_SEL_0 + 0x10)
 	#define ACCEL_AFS_SEL_3				(ACCEL_AFS_SEL_0 + 0x18)
@@ -101,20 +101,20 @@ incure any penelties but will be a waste of time)
 #define INT_STATUS          		(0x3A)
 
 /**********************************************************/
-#define ACCEL_XOUT_H        		(CONSTANT_FILL)
-#define ACCEL_XOUT_L        		(CONSTANT_FILL)
-#define ACCEL_YOUT_H        		(CONSTANT_FILL)
-#define ACCEL_YOUT_L        		(CONSTANT_FILL)
-#define ACCEL_ZOUT_H        		(CONSTANT_FILL)
-#define ACCEL_ZOUT_L        		(CONSTANT_FILL)
-//#define TEMP_OUT_H          		(CONSTANT_FILL)
-//#define TEMP_OUT_L          		(CONSTANT_FILL)
-#define GYRO_XOUT_H         		(CONSTANT_FILL)
-#define GYRO_XOUT_L         		(CONSTANT_FILL)
-#define GYRO_YOUT_H         		(CONSTANT_FILL)
-#define GYRO_YOUT_L         		(CONSTANT_FILL)
-#define GYRO_ZOUT_H         		(CONSTANT_FILL)
-#define GYRO_ZOUT_L         		(CONSTANT_FILL)
+#define ACCEL_XOUT_H        		(0x3B)
+#define ACCEL_XOUT_L        		(0x3C)
+#define ACCEL_YOUT_H        		(0x3D)
+#define ACCEL_YOUT_L        		(0x3E)
+#define ACCEL_ZOUT_H        		(0x3F)
+#define ACCEL_ZOUT_L        		(0x40)
+#define TEMP_OUT_H          		(0x41)
+#define TEMP_OUT_L          		(0x42)
+#define GYRO_XOUT_H         		(0x43)
+#define GYRO_XOUT_L         		(0x44)
+#define GYRO_YOUT_H         		(0x45)
+#define GYRO_YOUT_L         		(0x46)
+#define GYRO_ZOUT_H         		(0x47)
+#define GYRO_ZOUT_L         		(0x48)
 /**********************************************************/
 
 #define EXT_SENS_DATA_00    		(0x49)
@@ -151,19 +151,20 @@ incure any penelties but will be a waste of time)
 #define USER_CTRL           		(0x6A)
 
 /**********Power Management & ID Register**********/
-#define PWR_MGMT_1          		(CONSTANT_FILL)
-	#define PWR_CLK_SEL_INTERNAL	(CONSTANT_FILL)
+#define PWR_MGMT_1          		(0x6B)
+	#define PWR_CLK_SEL_INTERNAL	(0x00) // Internal 8MHz oscillator
 //	#define PWR_CLK_SEL_PLL_X 		()
 //	#define PWR_CLK_SEL_PLL_Y			()
 //	#define PWR_CLK_SEL_PLL_Z			()
 //	#define PWR_CLK_SEL_EXT_32		()
 //	#define PWR_CLK_SEL_EXT_19		()
 //	#define PWR_CLK_SEL_STOP			()
-//	#define PWR_TEMP_DIS					()
-//	#define PWR_CYCLE							()
-//	#define PWR_SLEEP							()
-	#define PWR_DEVICE_RESET			(CONSTANT_FILL)
-#define WHO_AM_I            		(CONSTANT_FILL)
+//	#define PWR_TEMP_DIS					(0x08) // Disable temperature sensor
+//	#define PWR_CYCLE							(0x20)
+//	#define PWR_SLEEP							(0x40) // Put MPU-6050 in sleep mode
+	#define PWR_DEVICE_RESET			(0x80) // Reset device
+#define WHO_AM_I            		(0x75)
+#define MPU6050_WHO_AM_I_CONST  (0x68) // Expected value for WHO_AM_I register
 /**********************************************************/
 
 #define PWR_MGMT_2          		(0x6C)

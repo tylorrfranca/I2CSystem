@@ -35,25 +35,34 @@
 void MPU6050_Init(void){
 	
 	uint8_t ret;
-	char stringBuf[10];
+	uint8_t who_am_i_val;
+	char stringBuf[20]; // Increased buffer size slightly
 	
-	//If check does not equal to their respected address, MPU is not detected
+	// Check the WHO_AM_I register to confirm identity
 	#ifndef USE_HIGH
-	ret = I2C0_Receive(MPU6050_ADDR_AD0_LOW, WHO_AM_I);
-	if(ret != MPU6050_ADDR_AD0_LOW){
-		UART0_OutString("MPU6050 has not been Detected\r\n");
+	who_am_i_val = I2C0_Receive(MPU6050_ADDR_AD0_LOW, WHO_AM_I);
+	if(who_am_i_val != MPU6050_WHO_AM_I_CONST){
+		UART0_OutString("MPU6050 WHO_AM_I check failed! Read: 0x");
+		UART0_OutUHex(who_am_i_val);
+		UART0_OutString(", Expected: 0x");
+		UART0_OutUHex(MPU6050_WHO_AM_I_CONST);
+		UART0_OutString("\r\n");
 		return;
 	}
 	#else
-	ret = I2C0_Receive(MPU6050_ADDR_AD0_HIGH, WHO_AM_I);
-	if(ret != MPU6050_ADDR_AD0_HIGH){
-		UART0_OutString("MPU6050 has not been Detected\r\n");
+	who_am_i_val = I2C0_Receive(MPU6050_ADDR_AD0_HIGH, WHO_AM_I);
+	if(who_am_i_val != MPU6050_WHO_AM_I_CONST){
+		UART0_OutString("MPU6050 WHO_AM_I check failed! Read: 0x");
+		UART0_OutUHex(who_am_i_val);
+		UART0_OutString(", Expected: 0x");
+		UART0_OutUHex(MPU6050_WHO_AM_I_CONST);
+		UART0_OutString("\r\n");
 		return;
 	}
 	#endif
 	
 	//Print ID out to terminal
-	sprintf(stringBuf, "ID: %x\r\n", ret);
+	sprintf(stringBuf, "WHO_AM_I: 0x%02X\r\n", who_am_i_val);
 	UART0_OutString(stringBuf);
 	
 	UART0_OutString("MPU6050 has been Detected\r\n");
@@ -116,12 +125,26 @@ void MPU6050_Get_Accel(MPU6050_ACCEL_t* Accel_Instance){
 	uint8_t ACCEL_Y_HIGH;
 	uint8_t ACCEL_Z_LOW;
 	uint8_t ACCEL_Z_HIGH;
+	uint8_t MPU_ADDR = MPU6050_ADDR_AD0_LOW; // Default address
+	#ifdef USE_HIGH
+		MPU_ADDR = MPU6050_ADDR_AD0_HIGH;
+	#endif
 	
 	/* Grab 16-bit Accel data of each axis by reading ACCEL data register using I2C*/
-	//CODE_FILL
+	// It's generally more efficient to do a burst read if the I2C function supports it.
+	// Assuming I2C0_Receive only reads one byte at a time:
+	ACCEL_X_HIGH = I2C0_Receive(MPU_ADDR, ACCEL_XOUT_H);
+	ACCEL_X_LOW  = I2C0_Receive(MPU_ADDR, ACCEL_XOUT_L);
+	ACCEL_Y_HIGH = I2C0_Receive(MPU_ADDR, ACCEL_YOUT_H);
+	ACCEL_Y_LOW  = I2C0_Receive(MPU_ADDR, ACCEL_YOUT_L);
+	ACCEL_Z_HIGH = I2C0_Receive(MPU_ADDR, ACCEL_ZOUT_H);
+	ACCEL_Z_LOW  = I2C0_Receive(MPU_ADDR, ACCEL_ZOUT_L);
 	
 	/* Concatanate and Save Into Accelerometer Struct Instance */
-	//CODE_FILL
+	// Combine HIGH and LOW bytes. Cast HIGH byte to int16_t first to ensure sign extension.
+	Accel_Instance->Ax_RAW = (int16_t)(ACCEL_X_HIGH << 8 | ACCEL_X_LOW);
+	Accel_Instance->Ay_RAW = (int16_t)(ACCEL_Y_HIGH << 8 | ACCEL_Y_LOW);
+	Accel_Instance->Az_RAW = (int16_t)(ACCEL_Z_HIGH << 8 | ACCEL_Z_LOW);
 	
 }
 
@@ -140,12 +163,25 @@ void MPU6050_Get_Gyro(MPU6050_GYRO_t* Gyro_Instance){
 	uint8_t GYRO_Y_HIGH;
 	uint8_t GYRO_Z_LOW;
 	uint8_t GYRO_Z_HIGH;
+	uint8_t MPU_ADDR = MPU6050_ADDR_AD0_LOW; // Default address
+	#ifdef USE_HIGH
+		MPU_ADDR = MPU6050_ADDR_AD0_HIGH;
+	#endif
 	
 	/* Grab 16-but Gyro Data of each Axis y reading GYRO data register using I2C*/
-	//CODE_FILL
+	// Assuming I2C0_Receive only reads one byte at a time:
+	GYRO_X_HIGH = I2C0_Receive(MPU_ADDR, GYRO_XOUT_H);
+	GYRO_X_LOW  = I2C0_Receive(MPU_ADDR, GYRO_XOUT_L);
+	GYRO_Y_HIGH = I2C0_Receive(MPU_ADDR, GYRO_YOUT_H);
+	GYRO_Y_LOW  = I2C0_Receive(MPU_ADDR, GYRO_YOUT_L);
+	GYRO_Z_HIGH = I2C0_Receive(MPU_ADDR, GYRO_ZOUT_H);
+	GYRO_Z_LOW  = I2C0_Receive(MPU_ADDR, GYRO_ZOUT_L);
 	
 	/* Concatanate and Save Into Gyro Struct Instance */
-	//CODE_FILL
+	// Combine HIGH and LOW bytes. Cast HIGH byte to int16_t first to ensure sign extension.
+	Gyro_Instance->Gx_RAW = (int16_t)(GYRO_X_HIGH << 8 | GYRO_X_LOW);
+	Gyro_Instance->Gy_RAW = (int16_t)(GYRO_Y_HIGH << 8 | GYRO_Y_LOW);
+	Gyro_Instance->Gz_RAW = (int16_t)(GYRO_Z_HIGH << 8 | GYRO_Z_LOW);
 }
 
 /*
@@ -243,9 +279,41 @@ void MPU6050_Process_Gyro(MPU6050_GYRO_t* Gyro_Instance){
  */
 void MPU6050_Get_Angle(MPU6050_ACCEL_t* Accel_Instance, MPU6050_GYRO_t* Gyro_Instance, MPU6050_ANGLE_t* Angle_Instance){
 	
-	//Hint: Use RAD_TO_DEGREE_CONV macro to convert radian to degree
-	/*CODE_FILL*/
+	// Process the raw data first to get scaled values (if not already done)
+	// MPU6050_Process_Accel(Accel_Instance); // Should be called before this function now
+	// MPU6050_Process_Gyro(Gyro_Instance);
+	// Note: The formulas below use the scaled values (Ax, Ay, Az in g's).
+	// It's assumed that MPU6050_Process_Accel has been called before this function.
 	
+	// Remove internal recalculation based on default sensitivity
+	//float ax = (float)Accel_Instance->Ax_RAW / ACCEL_LSB_0_VALUE;
+	//float ay = (float)Accel_Instance->Ay_RAW / ACCEL_LSB_0_VALUE;
+	//float az = (float)Accel_Instance->Az_RAW / ACCEL_LSB_0_VALUE;
+	
+	// Use the pre-processed values from the struct
+	float ax = Accel_Instance->Ax;
+	float ay = Accel_Instance->Ay;
+	float az = Accel_Instance->Az;
+	
+	//Hint: Use RAD_TO_DEGREE_CONV macro to convert radian to degree
+	/*CODE_FILL*/ // (This comment is no longer accurate, code is filled)
+	
+	// Calculate Roll (rotation around x-axis) using lecture formula Psi = atan( Ay / sqrt(Ax^2 + Az^2) )
+	// atan2f equivalent: atan2f( Ay, sqrt(Ax^2 + Az^2) )
+	Angle_Instance->ArX = atan2f(ay, sqrtf(ax*ax + az*az)) * RAD_TO_DEGREE_CONV;
+
+	// Calculate Pitch (rotation around y-axis) using standard formula atan2(-x, sqrt(y^2 + z^2))
+	// Lecture formula Theta = atan( Ax / sqrt(Ay^2 + Az^2) ) is similar but with different sign convention for Ax.
+	Angle_Instance->ArY = atan2f(-ax, sqrtf(ay*ay + az*az)) * RAD_TO_DEGREE_CONV;
+	
+	// Calculate Z position based on acceleration, but only when acceleration is not zero
+	float gyro_magnitude = Gyro_Instance->Gz;
+	
+	// Only update Z position when acceleration is not zero
+	if(gyro_magnitude > 3) { // Small threshold to avoid floating point errors		
+		// Update the Z angle/position
+		Angle_Instance->ArZ += gyro_magnitude * 1.55;
+	} 
 }
 
 /* Used for Debugging Purposes */

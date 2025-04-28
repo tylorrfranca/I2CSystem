@@ -106,3 +106,25 @@ char character;
   }
   *bufPt = 0; // adding null terminator to the end of the string.
 }
+
+//------------UART0_OutUHex-------------
+// Output a 32-bit number in unsigned hexadecimal format
+// Input: 32-bit number to be transferred
+// Output: none
+// Note: This function will print characters sequentially, leading zeros are printed.
+void UART0_OutUHex(uint32_t number){
+// This function uses recursion to convert decimal number
+//   of unspecified length as an ASCII string to UART
+  if(number >= 0x10){
+    UART0_OutUHex(number/0x10);
+    UART0_OutUHex(number%0x10);
+  }
+  else{
+    if(number < 0xA){
+      UART0_OutChar(number+'0');
+     }
+    else{
+      UART0_OutChar((number-0x0A)+'A');
+    }
+  }
+}

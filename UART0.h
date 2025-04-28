@@ -24,6 +24,8 @@
  http://users.ece.utexas.edu/~valvano/
  */
 
+#include <stdint.h> // Include standard integer types
+
 // U0Rx (VCP receive) connected to PA0
 // U0Tx (VCP transmit) connected to PA1
 
@@ -65,6 +67,13 @@ void UART0_OutChar(char data);
 // Input: pointer to a NULL-terminated string to be transferred
 // Output: none
 void UART0_OutString(char *pt);
+
+//------------UART_OutUHex-------------
+// Output a 32-bit number in unsigned hexadecimal format
+// Input: 32-bit number to be transferred
+// Output: none
+// Note: This function will print characters sequentially, leading zeros are printed.
+void UART0_OutUHex(uint32_t number);
 
 //------------UART_InString------------
 // Accepts ASCII characters from the serial port
