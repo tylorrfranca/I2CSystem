@@ -26,10 +26,10 @@
 /* List of Predefined Macros for individual Peripheral Testing */
 #define DELAY
 //#define UART
-#define I2C
+//#define I2C
 //	#define TCS34727
-#define MPU6050
-//#define SERVO
+//#define MPU6050
+#define SERVO
 //#define LCD
 //#define FULL_SYSTEM
 

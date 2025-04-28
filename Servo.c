@@ -78,7 +78,7 @@ void Drive_Servo(int16_t angle){
 	/* Map Function */
 	mapped = map(angle, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_CNT-1, SERVO_MAX_CNT-1);
 	
-	/* Setting New Compare Value */
-	PWM0_0_CMPA_R = mapped;
+	/* Setting New Compare Value - invert for count-down mode */
+	PWM0_0_CMPA_R = PWM0_COUNTER - 1 - mapped;
 	
 }
