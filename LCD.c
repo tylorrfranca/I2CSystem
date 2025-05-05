@@ -27,17 +27,21 @@ static void LCD_Send_CMD(uint8_t cmd){
 	uint8_t cmd_array[4];								//Command Array to Burst Transmit
 	
 	/* Seperate Upper and Lower Nibble */
-	cmd_upper = CODE_FILL; // use UPPER_NIBBLE_MSK here
-	cmd_lower = CODE_FILL; // use UPPER_NIBBLE_MSK here
+	cmd_upper = (cmd & UPPER_NIBBLE_MSK);
+	cmd_lower = ((cmd << NIBBLE_SHIFT) & UPPER_NIBBLE_MSK);
 	
 	/* LCD I2C Message Pattern */
-	cmd_array[0] = cmd_upper | (BACKLIGHT|EN_Pin);
-	cmd_array[1] = cmd_upper | BACKLIGHT;
-	cmd_array[2] = cmd_lower | (BACKLIGHT|EN_Pin);
-	cmd_array[3] = cmd_lower | BACKLIGHT;
+	cmd_array[0] = cmd_upper | (BACKLIGHT|EN_Pin);  // Send upper nibble with EN high
+	DELAY_1MS(1);                                    // Short delay
+	cmd_array[1] = cmd_upper | BACKLIGHT;           // Send upper nibble with EN low
+	DELAY_1MS(1);                                    // Short delay
+	cmd_array[2] = cmd_lower | (BACKLIGHT|EN_Pin);  // Send lower nibble with EN high
+	DELAY_1MS(1);                                    // Short delay
+	cmd_array[3] = cmd_lower | BACKLIGHT;           // Send lower nibble with EN low
 	
 	/* I2C Burst Transmit Command Array to LCD */
 	I2C0_Burst_Transmit(LCD_WRITE_ADDR, PCF8574A_REG, cmd_array, sizeof(cmd_array));
+	DELAY_1MS(2);                                    // Delay after command
 }
 
 /*
@@ -53,17 +57,21 @@ static void LCD_Send_Data(uint8_t data){
 	uint8_t data_array[4];							//Data Array to Burst Transmit
 	
 	/* Seperate Upper and Lower Nibble */
-	data_upper = CODE_FILL; // use UPPER_NIBBLE_MSK here
-	data_lower = CODE_FILL; // use UPPER_NIBBLE_MSK here
+	data_upper = (data & UPPER_NIBBLE_MSK);
+	data_lower = ((data << NIBBLE_SHIFT) & UPPER_NIBBLE_MSK);
 	
 	/* LCD I2C Message Pattern */
-	data_array[0] = data_upper | (BACKLIGHT|EN_Pin|RS_Pin);
-	data_array[1] = data_upper | (BACKLIGHT|RS_Pin);
-	data_array[2] = data_lower | (BACKLIGHT|EN_Pin|RS_Pin);
-	data_array[3] = data_lower | (BACKLIGHT|RS_Pin);
+	data_array[0] = data_upper | (BACKLIGHT|EN_Pin|RS_Pin);  // Send upper nibble with EN high
+	DELAY_1MS(1);                                             // Short delay
+	data_array[1] = data_upper | (BACKLIGHT|RS_Pin);         // Send upper nibble with EN low
+	DELAY_1MS(1);                                             // Short delay
+	data_array[2] = data_lower | (BACKLIGHT|EN_Pin|RS_Pin);  // Send lower nibble with EN high
+	DELAY_1MS(1);                                             // Short delay
+	data_array[3] = data_lower | (BACKLIGHT|RS_Pin);         // Send lower nibble with EN low
 	
 	/* I2C Burst Transmit Data Array to LCD */
 	I2C0_Burst_Transmit(LCD_WRITE_ADDR, PCF8574A_REG, data_array, sizeof(data_array));
+	DELAY_1MS(2);                                             // Delay after data
 }
 
 /*
@@ -74,37 +82,44 @@ static void LCD_Send_Data(uint8_t data){
  */
 void LCD_Init(void){
 	
-	/* Magic LCD Initialization */
-	DELAY_1MS(50);
-	LCD_Send_CMD(INIT_REG_CMD);
-	DELAY_1MS(5);
-	LCD_Send_CMD(INIT_REG_CMD);
-	DELAY_1MS(1);
-	LCD_Send_CMD(INIT_REG_CMD);
+	/* Power up delay */
+	DELAY_1MS(100);  // Increased initial delay for power stabilization
+	
+	/* Magic LCD Initialization Sequence */
+	LCD_Send_CMD(0x30);  // First initialization command
 	DELAY_1MS(10);
-	LCD_Send_CMD(INIT_FUNC_CMD);
+	LCD_Send_CMD(0x30);  // Second initialization command
+	DELAY_1MS(10);
+	LCD_Send_CMD(0x30);  // Third initialization command
 	DELAY_1MS(10);
 	
-	/* 4-Bit Display Mode Initialization */
-	//Set Function to 4-Bit, 2 rows, and 5x8 Character
-	LCD_Send_CMD(FUNC_MODE|FUNC_4_BIT|FUNC_2_ROW|FUNC_5_7);
-	DELAY_1MS(1);
+	/* Set to 4-bit mode */
+	LCD_Send_CMD(0x20);  // Function set: 4-bit mode
+	DELAY_1MS(10);
 	
-	//Turn off Display
-	LCD_Send_CMD(DISP_CMD|DISP_OFF|DISP_CURSOR_OFF|DISP_BLINK_OFF);
-	DELAY_1MS(1);
+	/* Configure display settings */
+	LCD_Send_CMD(0x28);  // Function set: 4-bit, 2-line, 5x8 dots
+	DELAY_1MS(10);
 	
-	//Clear Display
-	LCD_Send_CMD(CLEAR_DISP_CMD);
-	DELAY_1MS(2);
+	/* Display control */
+	LCD_Send_CMD(0x0C);  // Display on, cursor off, blink off
+	DELAY_1MS(10);
 	
-	//Set Entry Mode
-	LCD_Send_CMD(ENTRY_MODE_CMD|ENTRY_INC_CURSOR);
-	DELAY_1MS(1);
+	/* Clear display */
+	LCD_Send_CMD(0x01);  // Clear display
+	DELAY_1MS(20);       // Increased delay for clear command
 	
-	//Turn on Display with cursor and blink enable
-	LCD_Send_CMD(DISP_CMD|DISP_ON|DISP_CURSOR_ON|DISP_BLINK_ON);
+	/* Entry mode set */
+	LCD_Send_CMD(0x06);  // Increment cursor, no display shift
+	DELAY_1MS(10);
 	
+	/* Turn on display with cursor */
+	LCD_Send_CMD(0x0E);  // Display on, cursor on, blink off
+	DELAY_1MS(10);
+	
+	/* Clear display */
+	LCD_Send_CMD(0x01);  // Clear display
+	DELAY_1MS(20);       // Increased delay for clear command
 }
 
 /*

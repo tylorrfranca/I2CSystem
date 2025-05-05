@@ -21,42 +21,42 @@
 #define INIT_REG_CMD				(0x30U)
 #define INIT_FUNC_CMD				(0x20U)
 
-#define FUNC_MODE						(CONSTANT_FILL)
-	#define FUNC_4_BIT				(CONSTANT_FILL)
-	#define FUNC_2_ROW				(CONSTANT_FILL)
-	#define FUNC_5_7					(CONSTANT_FILL)
+#define FUNC_MODE						(0x20U)
+	#define FUNC_4_BIT				(0x00U)
+	#define FUNC_2_ROW				(0x08U)
+	#define FUNC_5_7					(0x00U)
 	
-#define DISP_CMD						(CONSTANT_FILL)
-	#define DISP_ON						(CONSTANT_FILL)
-	#define DISP_OFF					(CONSTANT_FILL)
-	#define DISP_CURSOR_ON		(CONSTANT_FILL)
-	#define DISP_CURSOR_OFF		(CONSTANT_FILL)
-	#define DISP_BLINK_ON			(CONSTANT_FILL)
-	#define DISP_BLINK_OFF		(CONSTANT_FILL)
+#define DISP_CMD						(0x08U)
+	#define DISP_ON						(0x04U)
+	#define DISP_OFF					(0x00U)
+	#define DISP_CURSOR_ON		(0x02U)
+	#define DISP_CURSOR_OFF		(0x00U)
+	#define DISP_BLINK_ON			(0x01U)
+	#define DISP_BLINK_OFF		(0x00U)
 	
-#define CLEAR_DISP_CMD			(CONSTANT_FILL)
+#define CLEAR_DISP_CMD			(0x01U)
 
-#define ENTRY_MODE_CMD			(CONSTANT_FILL)
-	#define ENTRY_INC_CURSOR	(CONSTANT_FILL)
+#define ENTRY_MODE_CMD			(0x04U)
+#define ENTRY_INC_CURSOR	  (0x02U)
 //	#define ENTRY_DISP_SHIFT	()
 	
-#define RETURN_HOME_CMD			(CONSTANT_FILL)
+#define RETURN_HOME_CMD			(0x02U)
 
-#define FIRST_ROW_CMD				(CONSTANT_FILL)
-#define SECOND_ROW_CMD			(CONSTANT_FILL)
+#define FIRST_ROW_CMD				(0x80U)
+#define SECOND_ROW_CMD			(0xC0U)
 
 /* LCD Module Macros */
-#define RS_Pin							(CONSTANT_FILL)
-#define RW_Pin							(CONSTANT_FILL)
-#define EN_Pin							(CONSTANT_FILL)
-#define BACKLIGHT						(CONSTANT_FILL)
+#define RS_Pin							(0x01U)
+#define RW_Pin							(0x02U)
+#define EN_Pin							(0x04U)
+#define BACKLIGHT						(0x08U)
 
 /* General Macros */
-#define UPPER_NIBBLE_MSK		(CONSTANT_FILL)
-#define NIBBLE_SHIFT				(CONSTANT_FILL)
+#define UPPER_NIBBLE_MSK		(0xF0U)
+#define NIBBLE_SHIFT				(4U)
 #define ROW1								(0U)
 #define ROW2								(1U)
-#define LCD_ROW_SIZE				(CONSTANT_FILL)
+#define LCD_ROW_SIZE				(16U)
 
 #include <stdint.h>
 

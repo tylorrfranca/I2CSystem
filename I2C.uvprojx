@@ -440,6 +440,11 @@
               <FileType>1</FileType>
               <FilePath>.\I2CMain.c</FilePath>
             </File>
+            <File>
+              <FileName>LCD.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\LCD.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -880,6 +885,11 @@
               <FileName>I2CMain.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\I2CMain.c</FilePath>
+            </File>
+            <File>
+              <FileName>LCD.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\LCD.h</FilePath>
             </File>
           </Files>
         </Group>
