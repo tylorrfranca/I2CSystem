@@ -41,20 +41,18 @@ void TCS34727_Init(void){
 	}
 	UART0_OutString("TCS34727 has been Detected\r\n");
 	
-	/* Set Integration Time to 2.4ms in timing register */
-	ret = I2C0_Transmit(TCS34727_ADDR, TCS34727_CMD|TCS34727_TIMING_R_ADDR, TCS34727_ATIME_2_4_MS);
+	/* Set Integration Time to 24ms in timing register for better sensitivity */
+	ret = I2C0_Transmit(TCS34727_ADDR, TCS34727_CMD|TCS34727_TIMING_R_ADDR, 0xF6); // 24ms
 	if(ret != 0)
 		UART0_OutString("Error on Transmit\r\n");
 	else
 		UART0_OutString("TCS34727 Integration Time Set\r\n");
 	
-	// Necessary Delay when setting integration time/wait time. 
-	// This varies for which integration time is choosen.
-	// This project chooses 2.4ms.
+	// Necessary Delay when setting integration time/wait time
 	DELAY_1MS(3);
 	
-	/* Setting Gain to 1X gain */
-	ret = I2C0_Transmit(TCS34727_ADDR, TCS34727_CMD|TCS34727_CTRL_R_ADDR, TCS34727_CTRL_AGAIN_1);
+	/* Setting Gain to 16X gain for better sensitivity */
+	ret = I2C0_Transmit(TCS34727_ADDR, TCS34727_CMD|TCS34727_CTRL_R_ADDR, 0x02); // 16x gain
 	if(ret != 0)
 		UART0_OutString("Error on Transmit\r\n");
 	else
@@ -77,11 +75,10 @@ void TCS34727_Init(void){
 	else
 		UART0_OutString("TCS34727 RGBC On\r\n");
 	
-	//Integration Time Delay when Activating. Varies with Integration Time Choosen by User
+	//Integration Time Delay when Activating
 	DELAY_1MS(3);
 	
 	UART0_OutString("TCS34727 Color Sensor Initialized\r\n");
-	
 }
 
 /*	---------------TCS34727_GET_RAW_CLEAR-------------
@@ -204,13 +201,33 @@ void TCS34727_GET_RGB(RGB_COLOR_HANDLE_t* RGB_COLOR_Instance){
  *	Output: COLOR_DETECTED enum value
  */
 COLOR_DETECTED Detect_Color(RGB_COLOR_HANDLE_t* RGB_COLOR_Instance){
+	// Minimum threshold for color detection
+	const float MIN_COLOR_THRESHOLD = 50.0f;
 	
-	/* Compare all values with eachother and return which color is prominent using enum type */ //Leave raw for blue once the gain is increased since it'ssince it's finicky
-	if(RGB_COLOR_Instance->R > RGB_COLOR_Instance->G && RGB_COLOR_Instance->R > RGB_COLOR_Instance->B)
+	// If all values are too low, no color detected
+	if(RGB_COLOR_Instance->R < MIN_COLOR_THRESHOLD && 
+	   RGB_COLOR_Instance->G < MIN_COLOR_THRESHOLD && 
+	   RGB_COLOR_Instance->B < MIN_COLOR_THRESHOLD) {
+		return NOTHING_DETECT;
+	}
+	
+	// Calculate color ratios
+	float total = RGB_COLOR_Instance->R + RGB_COLOR_Instance->G + RGB_COLOR_Instance->B;
+	float r_ratio = RGB_COLOR_Instance->R / total;
+	float g_ratio = RGB_COLOR_Instance->G / total;
+	float b_ratio = RGB_COLOR_Instance->B / total;
+	
+	// Color detection thresholds
+	const float RED_THRESHOLD = 0.4f;
+	const float GREEN_THRESHOLD = 0.4f;
+	const float BLUE_THRESHOLD = 0.4f;
+	
+	// Detect dominant color based on ratios
+	if(r_ratio > RED_THRESHOLD && r_ratio > g_ratio && r_ratio > b_ratio)
 		return RED_DETECT;
-	else if(RGB_COLOR_Instance->G > RGB_COLOR_Instance->R && RGB_COLOR_Instance->G > RGB_COLOR_Instance->B)
+	else if(g_ratio > GREEN_THRESHOLD && g_ratio > r_ratio && g_ratio > b_ratio)
 		return GREEN_DETECT;
-	else if(RGB_COLOR_Instance->B > RGB_COLOR_Instance->R && RGB_COLOR_Instance->B > RGB_COLOR_Instance->G)
+	else if(b_ratio > BLUE_THRESHOLD && b_ratio > r_ratio && b_ratio > g_ratio)
 		return BLUE_DETECT;
 	
 	/* Otherwise no color is being detected */

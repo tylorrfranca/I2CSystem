@@ -24,14 +24,14 @@
 #include "ModuleTest.h"
 
 /* List of Predefined Macros for individual Peripheral Testing */
-#define DELAY
+//#define DELAY
 //#define UART
-#define I2C
+//#define I2C
 //#define TCS34727
 //#define MPU6050
 //#define SERVO
-#define LCD
-//#define FULL_SYSTEM
+//#define LCD
+#define FULL_SYSTEM
 
 int main(void){
 	

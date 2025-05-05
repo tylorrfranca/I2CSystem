@@ -210,6 +210,10 @@ static void Test_Full_System(void){
 	UART0_OutString(printBuf);
 		
 	/* Grab Raw Color Data From Sensor and Process it */
+	RGB_COLOR.C_RAW = TCS34727_GET_RAW_CLEAR();
+	RGB_COLOR.R_RAW = TCS34727_GET_RAW_RED();
+	RGB_COLOR.G_RAW = TCS34727_GET_RAW_GREEN();
+	RGB_COLOR.B_RAW = TCS34727_GET_RAW_BLUE();
 	TCS34727_GET_RGB(&RGB_COLOR);
 		
 	/* Change Onboard RGB LED Color to Detected Color */
